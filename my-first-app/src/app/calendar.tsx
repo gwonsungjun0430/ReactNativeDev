@@ -127,7 +127,7 @@ export default function CalendarScreen() {
     >
       <View style={styles.container}>
         <Link href="/" style={styles.backLink}>
-          ← 목록으로
+          ← 오늘 할 일
         </Link>
 
         {/* 월 이동 */}
