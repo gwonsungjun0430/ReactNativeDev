@@ -21,11 +21,19 @@ type Todo = {
 
 const STORAGE_KEY = "todos";
 
+const getTodayKey = () => {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
 export default function Index() {
   const [text, setText] = useState("");
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const todayKey = getTodayKey();
 
+  
   // 이 화면이 열릴 때마다 저장된 목록 불러오기 (달력에서 바꾼 내용 반영)
   useFocusEffect(
     useCallback(() => {
@@ -59,7 +67,7 @@ export default function Index() {
     const title = text.trim();
     if (!title) return;
     setTodos((prev) => [
-      { id: Date.now().toString(), title, done: false },
+      { id: Date.now().toString(), title, done: false, date: todayKey },
       ...prev,
     ]);
     setText("");
@@ -77,7 +85,9 @@ export default function Index() {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
   };
 
-  const doneCount = todos.filter((t) => t.done).length;
+ // 오늘 할 일 + 날짜 없는 예전 할 일만 표시
+  const todayTodos = todos.filter((t) => !t.date || t.date === todayKey);
+  const doneCount = todayTodos.filter((t) => t.done).length;
 
   return (
     <KeyboardAvoidingView
@@ -91,7 +101,7 @@ export default function Index() {
         </Link>
       </View>
       <Text style={styles.count}>
-        완료 {doneCount} / 전체 {todos.length}
+        완료 {doneCount} / 전체 {todayTodos.length}
       </Text>
 
       <View style={styles.inputRow}>
@@ -110,7 +120,7 @@ export default function Index() {
       </View>
 
       <FlatList
-        data={todos}
+        data={todayTodos}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
           <Text style={styles.empty}>
@@ -132,7 +142,7 @@ export default function Index() {
                 >
                   {item.title}
                 </Text>
-                {item.date && <Text style={styles.dateText}>{item.date}</Text>}
+                
               </View>
             </Pressable>
             <Pressable onPress={() => deleteTodo(item.id)}>
